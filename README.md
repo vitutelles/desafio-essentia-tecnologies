@@ -23,7 +23,7 @@ docker compose --env-file .env up -d
 ```bash
 cd backend
 npm install
-npm exec prisma migrate dev
+npm run prisma:migrate
 npm run dev
 ```
 
