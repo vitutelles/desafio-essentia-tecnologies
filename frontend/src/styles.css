@@ -27,8 +27,7 @@ body {
   margin: 0;
   color: var(--text);
   background: radial-gradient(1000px 600px at 20% 0%, rgba(109, 123, 255, 0.25), transparent 60%),
-    radial-gradient(900px 500px at 90% 10%, rgba(155, 109, 255, 0.22), transparent 55%),
-    radial-gradient(900px 700px at 50% 100%, rgba(54, 211, 153, 0.14), transparent 55%),
+    radial-gradient(900px 500px at 90% 10%, rgba(46, 4, 137, 0.22), transparent 55%),
     var(--bg);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
     "Segoe UI Emoji";
