@@ -228,6 +228,16 @@ body {
   color: var(--muted);
 }
 
+.hint {
+  margin-top: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+}
+
 .alert {
   margin: 10px 16px 0;
   padding: 10px 12px;
@@ -241,9 +251,29 @@ body {
   color: var(--muted);
 }
 
+.board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.column {
+  overflow: hidden;
+}
+
+.column__body {
+  padding: 10px 12px 14px;
+  min-height: 120px;
+}
+
+.column--over {
+  outline: 2px solid rgba(109, 123, 255, 0.65);
+  outline-offset: 2px;
+}
+
 .tasks {
   list-style: none;
-  padding: 10px 12px 14px;
+  padding: 0;
   margin: 0;
   display: grid;
   gap: 10px;
@@ -254,6 +284,21 @@ body {
   background: rgba(15, 26, 48, 0.45);
   border-radius: 14px;
   padding: 12px;
+  cursor: grab;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.task:active {
+  cursor: grabbing;
+}
+
+.task--dragging {
+  opacity: 0.65;
+  transform: scale(0.99);
+}
+
+.task--drop {
+  border-color: rgba(109, 123, 255, 0.75);
 }
 
 .task--done {
