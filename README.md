@@ -33,6 +33,7 @@ cd frontend
 npm install
 npm start
 ```
+- Y e tecla enter, para aceitar as mudanças no arquivo `angular.json`
 
 ## Imagens
 
