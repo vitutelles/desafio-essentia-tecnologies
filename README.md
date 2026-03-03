@@ -10,6 +10,10 @@
 - Prisma ORM
 - JWT (Auth)
 
+## Variáveis de ambiente
+- RENOMEIE o arquivo `.env.example` para `.env` na raiz do diretório `desafio-essentia-tecnologies`.
+- RENOMEIE o arquivo `.env.example` para `.env` na raiz do diretório `backend`.
+
 ## Como rodar o backend
 ```bash
 cd backend
