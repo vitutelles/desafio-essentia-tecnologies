@@ -56,6 +56,12 @@ body {
   gap: 12px;
 }
 
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -215,6 +221,11 @@ body {
   color: rgba(255, 255, 255, 0.85);
   font-size: 12px;
   font-weight: 700;
+}
+
+.pill--todo {
+  border-color: rgba(109, 123, 255, 0.45);
+  background: rgba(109, 123, 255, 0.14);
 }
 
 .pill--ok {

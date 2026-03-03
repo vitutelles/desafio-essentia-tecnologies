@@ -1,8 +1,11 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 import { Prisma } from '@prisma/client'
-import { ZodError } from 'zod'
+import { ZodError, z } from 'zod'
+import { prisma } from './db'
 import { tasksRouter } from './routes/tasks'
 
 const app = express()
@@ -16,6 +19,78 @@ app.use(
 )
 
 app.get('/health', (_req, res) => res.json({ ok: true }))
+
+const authInputSchema = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(6).max(200)
+})
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error('JWT_SECRET is not set')
+  }
+  return secret
+}
+
+function signToken(user: { id: number; email: string }): string {
+  return jwt.sign(
+    { email: user.email },
+    getJwtSecret(),
+    {
+      subject: String(user.id),
+      expiresIn: process.env.JWT_EXPIRES_IN ?? '7d'
+    }
+  )
+}
+
+app.post('/auth/register', async (req, res, next) => {
+  try {
+    const input = authInputSchema.parse(req.body)
+
+    const passwordHash = await bcrypt.hash(input.password, 10)
+
+    const user = await prisma.user.create({
+      data: {
+        email: input.email,
+        passwordHash
+      },
+      select: { id: true, email: true }
+    })
+
+    const token = signToken(user)
+
+    res.status(201).json({ token })
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return res.status(409).json({ message: 'Email já cadastrado' })
+    }
+
+    next(err)
+  }
+})
+
+app.post('/auth/login', async (req, res, next) => {
+  try {
+    const input = authInputSchema.parse(req.body)
+
+    const user = await prisma.user.findUnique({
+      where: { email: input.email },
+      select: { id: true, email: true, passwordHash: true }
+    })
+
+    if (!user) return res.status(401).json({ message: 'Credenciais inválidas' })
+
+    const ok = await bcrypt.compare(input.password, user.passwordHash)
+    if (!ok) return res.status(401).json({ message: 'Credenciais inválidas' })
+
+    const token = signToken(user)
+
+    res.json({ token })
+  } catch (err) {
+    next(err)
+  }
+})
 
 app.use('/tasks', tasksRouter)
 

@@ -30,12 +30,52 @@ type OrderState = { todo: number[]; done: number[] };
             </div>
           </div>
 
-          <button class="btn btn--ghost" (click)="refresh()" [disabled]="loading()">Atualizar</button>
+          <div class="topbar__actions">
+            @if (token()) {
+              <button class="btn btn--ghost" (click)="refresh()" [disabled]="loading()">Atualizar</button>
+              <button class="btn btn--ghost" (click)="logout()">Sair</button>
+            }
+          </div>
         </div>
       </header>
 
       <main class="container">
-        <section class="card">
+        @if (!token()) {
+          <section class="card">
+            <div class="card__header card__header--split">
+              <h2 class="card__title">Acesso</h2>
+              <div class="card__meta">
+                <button class="btn btn--ghost" (click)="setAuthMode('login')" [disabled]="authLoading()">Entrar</button>
+                <button class="btn btn--ghost" (click)="setAuthMode('register')" [disabled]="authLoading()">Criar conta</button>
+              </div>
+            </div>
+
+            <div class="form">
+              <div class="field">
+                <label class="label">Email</label>
+                <input class="input" [(ngModel)]="authEmail" placeholder="seuemail@exemplo.com" />
+              </div>
+
+              <div class="field">
+                <label class="label">Senha</label>
+                <input class="input" type="password" [(ngModel)]="authPassword" placeholder="mínimo 6 caracteres" />
+              </div>
+
+              @if (authError()) {
+                <div class="alert">{{ authError() }}</div>
+              }
+
+              <div class="actions">
+                <button class="btn" (click)="submitAuth()" [disabled]="authLoading() || !authEmail.trim() || authPassword.length < 6">
+                  {{ authMode() === 'login' ? 'Entrar' : 'Criar conta' }}
+                </button>
+              </div>
+            </div>
+          </section>
+        }
+
+        @if (token()) {
+          <section class="card">
           <div class="card__header">
             <h2 class="card__title">Nova tarefa</h2>
           </div>
@@ -43,7 +83,7 @@ type OrderState = { todo: number[]; done: number[] };
           <div class="form">
             <div class="field">
               <label class="label">Título</label>
-              <input class="input" [(ngModel)]="title" placeholder="Ex.: Estudar Angular" />
+              <input class="input" [(ngModel)]="title" placeholder="Ex.: Estudar Projeto" />
             </div>
 
             <div class="field">
@@ -55,7 +95,8 @@ type OrderState = { todo: number[]; done: number[] };
               <button class="btn" (click)="add()" [disabled]="!title.trim()">Adicionar</button>
             </div>
           </div>
-        </section>
+          </section>
+        }
 
         @if (loading()) {
           <div class="muted">Carregando...</div>
@@ -64,11 +105,12 @@ type OrderState = { todo: number[]; done: number[] };
           <div class="alert">{{ error() }}</div>
         }
 
-        <div class="hint">
-          Dica: arraste os cards para reordenar ou mover entre “Pendentes” e “Concluídas”.
-        </div>
+        @if (token()) {
+          <div class="hint">
+            Dica: arraste os cards para reordenar ou mover entre “Pendentes” e “Concluídas”.
+          </div>
 
-        <section class="board">
+          <section class="board">
           <section
             class="card column"
             [class.column--over]="dragOverColumn() === 'todo'"
@@ -210,7 +252,8 @@ type OrderState = { todo: number[]; done: number[] };
               </ul>
             </div>
           </section>
-        </section>
+          </section>
+        }
       </main>
     </div>
   `,
@@ -220,9 +263,17 @@ export class App {
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly baseUrl = 'http://localhost:3000';
+  private readonly tokenStorageKey = 'techx_token';
+
+  token = signal<string | null>(null);
+  authMode = signal<'login' | 'register'>('login');
+  authLoading = signal(false);
+  authError = signal<string | null>(null);
+  authEmail = '';
+  authPassword = '';
 
   tasks = signal<Task[]>([]);
-  loading = signal(true);
+  loading = signal(false);
   error = signal<string | null>(null);
 
   private readonly orderStorageKey = 'techx_task_order_v1';
@@ -245,11 +296,24 @@ export class App {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.order.set(this.loadOrder());
-      afterNextRender(() => this.refresh());
+
+      const savedToken = localStorage.getItem(this.tokenStorageKey);
+      if (savedToken) this.token.set(savedToken);
+
+      afterNextRender(() => {
+        if (this.token()) this.refresh();
+      });
     }
   }
 
   refresh(): void {
+    if (!this.token()) {
+      this.loading.set(false);
+      this.tasks.set([]);
+      this.error.set('Faça login para ver suas tarefas');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -349,6 +413,7 @@ export class App {
       }
     });
   }
+
 
   onTaskDragStart(ev: DragEvent, t: Task): void {
     if (!ev.dataTransfer) return;
@@ -489,7 +554,58 @@ export class App {
     });
   }
 
+  setAuthMode(mode: 'login' | 'register'): void {
+    this.authMode.set(mode);
+    this.authError.set(null);
+  }
+
+  submitAuth(): void {
+    const email = this.authEmail.trim();
+    const password = this.authPassword;
+
+    if (!email || password.length < 6) return;
+
+    this.authLoading.set(true);
+    this.authError.set(null);
+
+    const path = this.authMode() === 'login' ? '/auth/login' : '/auth/register';
+
+    this.http.post<{ token: string }>(`${this.baseUrl}${path}`, { email, password }).subscribe({
+      next: ({ token }) => {
+        try {
+          localStorage.setItem(this.tokenStorageKey, token);
+        } catch {
+          
+        }
+        this.token.set(token);
+        this.authPassword = '';
+        this.authLoading.set(false);
+        this.refresh();
+      },
+      error: (err) => {
+        this.authLoading.set(false);
+
+        const message = typeof err?.error?.message === 'string' ? err.error.message : null;
+        this.authError.set(message ?? 'Falha na autenticação');
+      }
+    });
+  }
+
+  logout(): void {
+    try {
+      localStorage.removeItem(this.tokenStorageKey);
+    } catch {
+      
+    }
+
+    this.token.set(null);
+    this.tasks.set([]);
+    this.loading.set(false);
+    this.error.set('Faça login para ver suas tarefas');
+  }
+
   private moveInOrder(taskId: number, target: ColumnKey, beforeId?: number): void {
+    if (!this.token()) return;
     if (!isPlatformBrowser(this.platformId)) return;
 
     const current = this.order();

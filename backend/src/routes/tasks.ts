@@ -1,8 +1,48 @@
-import { Router } from 'express'
+import express, { Router } from 'express'
+import jwt from 'jsonwebtoken'
 import { prisma } from '../db'
 import { createTaskSchema, updateTaskSchema } from './validation/task'
 
 export const tasksRouter = Router()
+
+type AuthUser = { id: number; email?: string }
+type AuthRequest = express.Request & { user?: AuthUser }
+
+function requireAuth(req: AuthRequest, res: express.Response, next: express.NextFunction): void {
+  const header = req.header('authorization') ?? ''
+  const [type, token] = header.split(' ')
+
+  if (type !== 'Bearer' || !token) {
+    res.status(401).json({ message: 'Unauthorized' })
+    return
+  }
+
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    res.status(500).json({ message: 'JWT secret not configured' })
+    return
+  }
+
+  try {
+    const payload = jwt.verify(token, secret) as jwt.JwtPayload
+
+    const sub = payload.sub
+    const id = typeof sub === 'string' ? Number(sub) : typeof sub === 'number' ? sub : NaN
+
+    if (!Number.isFinite(id)) {
+      res.status(401).json({ message: 'Unauthorized' })
+      return
+    }
+
+    req.user = { id, email: typeof payload.email === 'string' ? payload.email : undefined }
+
+    next()
+  } catch {
+    res.status(401).json({ message: 'Unauthorized' })
+  }
+}
+
+tasksRouter.use(requireAuth)
 
 tasksRouter.get('/', async (_req, res, next) => {
   try {
