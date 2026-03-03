@@ -14,6 +14,11 @@
 - RENOMEIE o arquivo `.env.example` para `.env` na raiz do diretório `desafio-essentia-tecnologies`.
 - RENOMEIE o arquivo `.env.example` para `.env` na raiz do diretório `backend`.
 
+## Como rodar o banco de dados
+na raiz do diretório `desafio-essentia-tecnologies`, execute:
+```bash
+docker compose --env-file .env up -d
+```
 ## Como rodar o backend
 ```bash
 cd backend
