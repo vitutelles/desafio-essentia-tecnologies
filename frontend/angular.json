@@ -32,7 +32,9 @@
             "security": {
               "allowedHosts": [
                 "localhost",
-                "127.0.0.1"
+                "localhost:4200",
+                "127.0.0.1",
+                "127.0.0.1:4200"
               ]
             },
             "ssr": {
@@ -65,6 +67,14 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [
+              "localhost",
+              "localhost:4200",
+              "127.0.0.1",
+              "127.0.0.1:4200"
+            ]
+          },
           "configurations": {
             "production": {
               "buildTarget": "frontend:build:production"
