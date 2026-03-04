@@ -80,7 +80,7 @@ type OrderState = { todo: number[]; done: number[] };
                   [maxlength]="authPasswordMax"
                   [(ngModel)]="authPassword"
                   (ngModelChange)="authPassword = clamp($event, authPasswordMax)"
-                  placeholder="mín. {{ authPasswordMin }} (1 letra e 1 número)"
+                  placeholder="mín. {{ authPasswordMin }} caracteres"
                 />
                 <div class="field__meta">
                   <div class="field__error">@if (authPasswordError()) { {{ authPasswordError() }} }</div>
@@ -677,10 +677,6 @@ export class App {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
 
-  private hasLetterAndNumber(value: string): boolean {
-    return /[A-Za-z]/.test(value) && /\d/.test(value);
-  }
-
   private getAuthEmailErrorMessage(): string | null {
     const email = this.authEmail.trim();
     if (!email) return 'Informe um email';
@@ -700,7 +696,6 @@ export class App {
     if (!password) return 'Informe uma senha';
     if (password.length < this.authPasswordMin) return `Mínimo ${this.authPasswordMin} caracteres`;
     if (password.length > this.authPasswordMax) return `Máximo ${this.authPasswordMax} caracteres`;
-    if (!this.hasLetterAndNumber(password)) return 'Use pelo menos 1 letra e 1 número';
     return null;
   }
 
