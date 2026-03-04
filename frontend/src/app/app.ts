@@ -53,12 +53,39 @@ type OrderState = { todo: number[]; done: number[] };
             <div class="form">
               <div class="field">
                 <label class="label">Email</label>
-                <input class="input" [(ngModel)]="authEmail" placeholder="seuemail@exemplo.com" />
+                <input
+                  class="input"
+                  [class.input--invalid]="!!authEmailError()"
+                  type="email"
+                  inputmode="email"
+                  autocomplete="email"
+                  [maxlength]="authEmailMax"
+                  [(ngModel)]="authEmail"
+                  (ngModelChange)="authEmail = clamp($event, authEmailMax)"
+                  placeholder="seuemail@exemplo.com"
+                />
+                <div class="field__meta">
+                  <div class="field__error">@if (authEmailError()) { {{ authEmailError() }} }</div>
+                  <div class="counter">{{ authEmail.length }}/{{ authEmailMax }}</div>
+                </div>
               </div>
 
               <div class="field">
                 <label class="label">Senha</label>
-                <input class="input" type="password" [(ngModel)]="authPassword" placeholder="mínimo 6 caracteres" />
+                <input
+                  class="input"
+                  [class.input--invalid]="!!authPasswordError()"
+                  type="password"
+                  autocomplete="current-password"
+                  [maxlength]="authPasswordMax"
+                  [(ngModel)]="authPassword"
+                  (ngModelChange)="authPassword = clamp($event, authPasswordMax)"
+                  placeholder="mín. {{ authPasswordMin }} (1 letra e 1 número)"
+                />
+                <div class="field__meta">
+                  <div class="field__error">@if (authPasswordError()) { {{ authPasswordError() }} }</div>
+                  <div class="counter">{{ authPassword.length }}/{{ authPasswordMax }}</div>
+                </div>
               </div>
 
               @if (authError()) {
@@ -66,7 +93,7 @@ type OrderState = { todo: number[]; done: number[] };
               }
 
               <div class="actions">
-                <button class="btn" (click)="submitAuth()" [disabled]="authLoading() || !authEmail.trim() || authPassword.length < 6">
+                <button class="btn" (click)="submitAuth()" [disabled]="authLoading() || !isAuthValid()">
                   {{ authMode() === 'login' ? 'Entrar' : 'Criar conta' }}
                 </button>
               </div>
@@ -83,16 +110,39 @@ type OrderState = { todo: number[]; done: number[] };
           <div class="form">
             <div class="field">
               <label class="label">Título</label>
-              <input class="input" [(ngModel)]="title" placeholder="Ex.: Estudar Projeto" />
+              <input
+                class="input"
+                [class.input--invalid]="!!titleError()"
+                [maxlength]="taskTitleMax"
+                [(ngModel)]="title"
+                (ngModelChange)="title = clamp($event, taskTitleMax)"
+                placeholder="Ex.: Estudar Projeto"
+              />
+              <div class="field__meta">
+                <div class="field__error">@if (titleError()) { {{ titleError() }} }</div>
+                <div class="counter">{{ title.length }}/{{ taskTitleMax }}</div>
+              </div>
             </div>
 
             <div class="field">
               <label class="label">Descrição</label>
-              <textarea class="textarea" [(ngModel)]="description" placeholder="Opcional" rows="3"></textarea>
+              <textarea
+                class="textarea"
+                [class.textarea--invalid]="!!descriptionError()"
+                [maxlength]="taskDescriptionMax"
+                [(ngModel)]="description"
+                (ngModelChange)="description = clamp($event, taskDescriptionMax)"
+                placeholder="Opcional"
+                rows="3"
+              ></textarea>
+              <div class="field__meta">
+                <div class="field__error">@if (descriptionError()) { {{ descriptionError() }} }</div>
+                <div class="counter">{{ description.length }}/{{ taskDescriptionMax }}</div>
+              </div>
             </div>
 
             <div class="actions">
-              <button class="btn" (click)="add()" [disabled]="!title.trim()">Adicionar</button>
+              <button class="btn" (click)="add()" [disabled]="!isNewTaskValid()">Adicionar</button>
             </div>
           </div>
           </section>
@@ -164,14 +214,37 @@ type OrderState = { todo: number[]; done: number[] };
                       <div class="task__edit">
                         <div class="field">
                           <label class="label">Título</label>
-                          <input class="input" [(ngModel)]="editTitle" placeholder="Título" />
+                          <input
+                            class="input"
+                            [class.input--invalid]="!!editTitleError()"
+                            [maxlength]="taskTitleMax"
+                            [(ngModel)]="editTitle"
+                            (ngModelChange)="editTitle = clamp($event, taskTitleMax)"
+                            placeholder="Título"
+                          />
+                          <div class="field__meta">
+                            <div class="field__error">@if (editTitleError()) { {{ editTitleError() }} }</div>
+                            <div class="counter">{{ editTitle.length }}/{{ taskTitleMax }}</div>
+                          </div>
                         </div>
                         <div class="field">
                           <label class="label">Descrição</label>
-                          <textarea class="textarea" [(ngModel)]="editDescription" placeholder="Opcional" rows="3"></textarea>
+                          <textarea
+                            class="textarea"
+                            [class.textarea--invalid]="!!editDescriptionError()"
+                            [maxlength]="taskDescriptionMax"
+                            [(ngModel)]="editDescription"
+                            (ngModelChange)="editDescription = clamp($event, taskDescriptionMax)"
+                            placeholder="Opcional"
+                            rows="3"
+                          ></textarea>
+                          <div class="field__meta">
+                            <div class="field__error">@if (editDescriptionError()) { {{ editDescriptionError() }} }</div>
+                            <div class="counter">{{ editDescription.length }}/{{ taskDescriptionMax }}</div>
+                          </div>
                         </div>
                         <div class="actions actions--row">
-                          <button class="btn" (click)="saveEdit(t.id)" [disabled]="!editTitle.trim()">Salvar</button>
+                          <button class="btn" (click)="saveEdit(t.id)" [disabled]="!isEditTaskValid()">Salvar</button>
                           <button class="btn btn--ghost" (click)="cancelEdit()">Cancelar</button>
                         </div>
                       </div>
@@ -235,14 +308,37 @@ type OrderState = { todo: number[]; done: number[] };
                       <div class="task__edit">
                         <div class="field">
                           <label class="label">Título</label>
-                          <input class="input" [(ngModel)]="editTitle" placeholder="Título" />
+                          <input
+                            class="input"
+                            [class.input--invalid]="!!editTitleError()"
+                            [maxlength]="taskTitleMax"
+                            [(ngModel)]="editTitle"
+                            (ngModelChange)="editTitle = clamp($event, taskTitleMax)"
+                            placeholder="Título"
+                          />
+                          <div class="field__meta">
+                            <div class="field__error">@if (editTitleError()) { {{ editTitleError() }} }</div>
+                            <div class="counter">{{ editTitle.length }}/{{ taskTitleMax }}</div>
+                          </div>
                         </div>
                         <div class="field">
                           <label class="label">Descrição</label>
-                          <textarea class="textarea" [(ngModel)]="editDescription" placeholder="Opcional" rows="3"></textarea>
+                          <textarea
+                            class="textarea"
+                            [class.textarea--invalid]="!!editDescriptionError()"
+                            [maxlength]="taskDescriptionMax"
+                            [(ngModel)]="editDescription"
+                            (ngModelChange)="editDescription = clamp($event, taskDescriptionMax)"
+                            placeholder="Opcional"
+                            rows="3"
+                          ></textarea>
+                          <div class="field__meta">
+                            <div class="field__error">@if (editDescriptionError()) { {{ editDescriptionError() }} }</div>
+                            <div class="counter">{{ editDescription.length }}/{{ taskDescriptionMax }}</div>
+                          </div>
                         </div>
                         <div class="actions actions--row">
-                          <button class="btn" (click)="saveEdit(t.id)" [disabled]="!editTitle.trim()">Salvar</button>
+                          <button class="btn" (click)="saveEdit(t.id)" [disabled]="!isEditTaskValid()">Salvar</button>
                           <button class="btn btn--ghost" (click)="cancelEdit()">Cancelar</button>
                         </div>
                       </div>
@@ -269,8 +365,20 @@ export class App {
   authMode = signal<'login' | 'register'>('login');
   authLoading = signal(false);
   authError = signal<string | null>(null);
+
+  readonly authEmailMax = 255;
+  readonly authPasswordMin = 6;
+  readonly authPasswordMax = 200;
+
+  authTriedSubmit = false;
   authEmail = '';
   authPassword = '';
+
+  readonly taskTitleMax = 200;
+  readonly taskDescriptionMax = 500;
+
+  taskTriedSubmit = false;
+  editTriedSubmit = false;
 
   tasks = signal<Task[]>([]);
   loading = signal(false);
@@ -337,10 +445,12 @@ export class App {
   }
 
   add(): void {
+    this.taskTriedSubmit = true;
+
     const title = this.title.trim();
     const description = this.description.trim();
 
-    if (!title) return;
+    if (!this.isNewTaskValid()) return;
 
     this.http
       .post<Task>(`${this.baseUrl}/tasks`, { title, description: description ? description : undefined })
@@ -348,6 +458,7 @@ export class App {
         next: () => {
           this.title = '';
           this.description = '';
+          this.taskTriedSubmit = false;
           this.refresh();
         },
         error: () => {
@@ -358,21 +469,25 @@ export class App {
 
   startEdit(t: Task): void {
     this.editingId = t.id;
+    this.editTriedSubmit = false;
     this.editTitle = t.title;
     this.editDescription = t.description ?? '';
   }
 
   cancelEdit(): void {
     this.editingId = null;
+    this.editTriedSubmit = false;
     this.editTitle = '';
     this.editDescription = '';
   }
 
   saveEdit(id: number): void {
+    this.editTriedSubmit = true;
+
     const title = this.editTitle.trim();
     const description = this.editDescription.trim();
 
-    if (!title) return;
+    if (!this.isEditTaskValid()) return;
 
     this.http
       .put<Task>(`${this.baseUrl}/tasks/${id}`, { title, description: description ? description : null })
@@ -554,16 +669,108 @@ export class App {
     });
   }
 
+  clamp(value: string, max: number): string {
+    return value.length > max ? value.slice(0, max) : value;
+  }
+
+  private isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  private hasLetterAndNumber(value: string): boolean {
+    return /[A-Za-z]/.test(value) && /\d/.test(value);
+  }
+
+  private getAuthEmailErrorMessage(): string | null {
+    const email = this.authEmail.trim();
+    if (!email) return 'Informe um email';
+    if (email.length > this.authEmailMax) return `Máximo ${this.authEmailMax} caracteres`;
+    if (!this.isValidEmail(email)) return 'Email inválido';
+    return null;
+  }
+
+  authEmailError(): string | null {
+    const message = this.getAuthEmailErrorMessage();
+    if (!this.authTriedSubmit && !this.authEmail.trim()) return null;
+    return message;
+  }
+
+  private getAuthPasswordErrorMessage(): string | null {
+    const password = this.authPassword;
+    if (!password) return 'Informe uma senha';
+    if (password.length < this.authPasswordMin) return `Mínimo ${this.authPasswordMin} caracteres`;
+    if (password.length > this.authPasswordMax) return `Máximo ${this.authPasswordMax} caracteres`;
+    if (!this.hasLetterAndNumber(password)) return 'Use pelo menos 1 letra e 1 número';
+    return null;
+  }
+
+  authPasswordError(): string | null {
+    const message = this.getAuthPasswordErrorMessage();
+    if (!this.authTriedSubmit && this.authPassword.length === 0) return null;
+    return message;
+  }
+
+  isAuthValid(): boolean {
+    return !this.getAuthEmailErrorMessage() && !this.getAuthPasswordErrorMessage();
+  }
+
+  private getTitleErrorMessage(value: string): string | null {
+    const t = value.trim();
+    if (!t) return 'Informe um título';
+    if (t.length > this.taskTitleMax) return `Máximo ${this.taskTitleMax} caracteres`;
+    return null;
+  }
+
+  titleError(): string | null {
+    const message = this.getTitleErrorMessage(this.title);
+    if (!this.taskTriedSubmit && !this.title.trim()) return null;
+    return message;
+  }
+
+  private getDescriptionErrorMessage(value: string): string | null {
+    if (value.length > this.taskDescriptionMax) return `Máximo ${this.taskDescriptionMax} caracteres`;
+    return null;
+  }
+
+  descriptionError(): string | null {
+    const message = this.getDescriptionErrorMessage(this.description);
+    if (!this.taskTriedSubmit && this.description.length === 0) return null;
+    return message;
+  }
+
+  isNewTaskValid(): boolean {
+    return !this.getTitleErrorMessage(this.title) && !this.getDescriptionErrorMessage(this.description);
+  }
+
+  editTitleError(): string | null {
+    const message = this.getTitleErrorMessage(this.editTitle);
+    if (!this.editTriedSubmit && !this.editTitle.trim()) return null;
+    return message;
+  }
+
+  editDescriptionError(): string | null {
+    const message = this.getDescriptionErrorMessage(this.editDescription);
+    if (!this.editTriedSubmit && this.editDescription.length === 0) return null;
+    return message;
+  }
+
+  isEditTaskValid(): boolean {
+    return !this.getTitleErrorMessage(this.editTitle) && !this.getDescriptionErrorMessage(this.editDescription);
+  }
+
   setAuthMode(mode: 'login' | 'register'): void {
     this.authMode.set(mode);
     this.authError.set(null);
+    this.authTriedSubmit = false;
   }
 
   submitAuth(): void {
+    this.authTriedSubmit = true;
+
     const email = this.authEmail.trim();
     const password = this.authPassword;
 
-    if (!email || password.length < 6) return;
+    if (!this.isAuthValid()) return;
 
     this.authLoading.set(true);
     this.authError.set(null);
