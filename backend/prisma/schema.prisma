@@ -16,7 +16,7 @@ datasource db {
 
 model User {
   id           Int      @id @default(autoincrement())
-  email        String   @unique
+  email        String   @unique @db.VarChar(255)
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -24,8 +24,8 @@ model User {
 
 model Task {
   id          Int      @id @default(autoincrement())
-  title       String
-  description String?  @db.Text
+  title       String   @db.VarChar(200)
+  description String?  @db.VarChar(500)
   completed   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
