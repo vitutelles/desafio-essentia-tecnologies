@@ -192,9 +192,9 @@ type OrderState = { todo: number[]; done: number[] };
                     @if (editingId !== t.id) {
                       <div class="task__row">
                         <div class="task__content">
-                          <div class="task__title">{{ t.title }}</div>
+                          <div class="task__title" [attr.title]="t.title">{{ t.title }}</div>
                           @if (t.description) {
-                            <div class="task__desc">{{ t.description }}</div>
+                            <div class="task__desc" [attr.title]="t.description">{{ t.description }}</div>
                           }
                           <div class="task__meta">
                             <span class="status">Pendente</span>
@@ -286,9 +286,9 @@ type OrderState = { todo: number[]; done: number[] };
                     @if (editingId !== t.id) {
                       <div class="task__row">
                         <div class="task__content">
-                          <div class="task__title">{{ t.title }}</div>
+                          <div class="task__title" [attr.title]="t.title">{{ t.title }}</div>
                           @if (t.description) {
-                            <div class="task__desc">{{ t.description }}</div>
+                            <div class="task__desc" [attr.title]="t.description">{{ t.description }}</div>
                           }
                           <div class="task__meta">
                             <span class="status status--done">Concluída</span>
