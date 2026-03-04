@@ -2,7 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import jwt, { type Secret, type SignOptions } from 'jsonwebtoken'
 import { Prisma } from '@prisma/client'
 import { ZodError, z } from 'zod'
 import { prisma } from './db'
@@ -34,12 +34,14 @@ function getJwtSecret(): string {
 }
 
 function signToken(user: { id: number; email: string }): string {
+  const expiresIn = (process.env.JWT_EXPIRES_IN ?? '7d') as SignOptions['expiresIn']
+
   return jwt.sign(
     { email: user.email },
-    getJwtSecret(),
+    getJwtSecret() as Secret,
     {
       subject: String(user.id),
-      expiresIn: process.env.JWT_EXPIRES_IN ?? '7d'
+      expiresIn
     }
   )
 }
