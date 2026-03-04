@@ -15,6 +15,8 @@
 - Copie o arquivo `.env.example` para `.env` na raiz do diretório `desafio-essentia-tecnologies`.
 - Copie o arquivo `.env.example` para `.env` na raiz do diretório `backend`.
 
+## Como rodar o projeto de forma automatizada
+
 ## Como rodar macOS
 na raiz do diretório `desafio-essentia-tecnologies`, execute:
 ```bash
@@ -32,6 +34,28 @@ docker compose --env-file .env up -d --build \
 && xdg-open http://localhost:4200/
 ```
 
+## Como rodar manualmente 
+
+## Como rodar o banco de dados
+na raiz do diretório `desafio-essentia-tecnologies`, execute:
+```bash
+docker compose --env-file .env up -d
+```
+## Como rodar o backend
+```bash
+cd backend
+npm install
+npm run prisma:migrate
+npm run dev
+```
+
+## Como rodar o frontend
+```bash
+cd frontend
+npm install
+npm start
+```
+- Y e tecla enter, para aceitar as mudanças no arquivo `angular.json`
 ## Imagens
 
 ![Login](assets/login.png)
