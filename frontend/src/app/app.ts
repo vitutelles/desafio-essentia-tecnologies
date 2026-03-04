@@ -207,7 +207,12 @@ type OrderState = { todo: number[]; done: number[] };
                             <span>Concluir</span>
                           </label>
                           <button class="btn btn--ghost" (click)="startEdit(t)">Editar</button>
-                          <button class="btn btn--danger" (click)="remove(t.id)">Remover</button>
+                          @if (pendingRemoveId !== t.id) {
+                            <button class="btn btn--danger" (click)="requestRemove(t.id)">Remover</button>
+                          } @else {
+                            <button class="btn btn--danger" (click)="confirmRemove(t.id)">Confirmar</button>
+                            <button class="btn btn--ghost" (click)="cancelRemove()">Cancelar</button>
+                          }
                         </div>
                       </div>
                     } @else {
@@ -301,7 +306,12 @@ type OrderState = { todo: number[]; done: number[] };
                             <span>Reabrir</span>
                           </label>
                           <button class="btn btn--ghost" (click)="startEdit(t)">Editar</button>
-                          <button class="btn btn--danger" (click)="remove(t.id)">Remover</button>
+                          @if (pendingRemoveId !== t.id) {
+                            <button class="btn btn--danger" (click)="requestRemove(t.id)">Remover</button>
+                          } @else {
+                            <button class="btn btn--danger" (click)="confirmRemove(t.id)">Confirmar</button>
+                            <button class="btn btn--ghost" (click)="cancelRemove()">Cancelar</button>
+                          }
                         </div>
                       </div>
                     } @else {
@@ -401,6 +411,8 @@ export class App {
   editTitle = '';
   editDescription = '';
 
+  pendingRemoveId: number | null = null;
+
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.order.set(this.loadOrder());
@@ -468,6 +480,7 @@ export class App {
   }
 
   startEdit(t: Task): void {
+    this.pendingRemoveId = null;
     this.editingId = t.id;
     this.editTriedSubmit = false;
     this.editTitle = t.title;
@@ -479,6 +492,19 @@ export class App {
     this.editTriedSubmit = false;
     this.editTitle = '';
     this.editDescription = '';
+  }
+
+  requestRemove(id: number): void {
+    this.pendingRemoveId = id;
+  }
+
+  cancelRemove(): void {
+    this.pendingRemoveId = null;
+  }
+
+  confirmRemove(id: number): void {
+    this.pendingRemoveId = null;
+    this.remove(id);
   }
 
   saveEdit(id: number): void {
@@ -521,6 +547,8 @@ export class App {
   }
 
   remove(id: number): void {
+    this.pendingRemoveId = null;
+
     this.http.delete<void>(`${this.baseUrl}/tasks/${id}`).subscribe({
       next: () => this.refresh(),
       error: () => {
